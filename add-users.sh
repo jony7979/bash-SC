@@ -1,5 +1,7 @@
 #! /bin/bash
-PH=$(readlink -f $1)
+# создание пользователей с "/bin/false" из файла, который указанем как путь через переменную $1
+# пример add-users.sh /home/jon/list-users.txt
+PH=$(readlink -f $1) 
 if [ "PH" != '' ]; then
 for i in $(cat $PH)
 do useradd -s /bin/false "$i"
