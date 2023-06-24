@@ -1,5 +1,5 @@
- #! /bin/bash
- 
+#! /bin/bash
+# Пример подмены переменных оператора if
   if [ "$1" == "first" ]; then
  V1="second"
  elif [ "$1" == "second" ]; then
