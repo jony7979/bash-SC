@@ -1,0 +1,68 @@
+#!/bin/bash
+#калькулятор IP адресов, маски.
+ 
+un=start
+        until [ "$un" = y ] ; do
+echo "Укажите IP адрес: (пример: 1.1.1.1) "
+IFS="." read -r IP1 IP2 IP3 IP4
+IPadr=($IP1 $IP2 $IP3 $IP4)
+        for s in ${IPadr[@]} ; do
+( [[ "$s" =~ ^[0-9]+$ ]] && (( $s < 256 ))) && un=start || un=err && continue
+echo $s
+        done # for
+( [[ $un == err ]] || [ ! ${#IPadr[@]} = 4 ] ) && echo "Указан не корректный IP адрес, повторите ввод" && continue
+un=y
+        done # until
+
+IPbi1=$(printf "%08d\n" $(echo "obase=2;$IP1" | bc))
+IPbi2=$(printf "%08d\n" $(echo "obase=2;$IP2" | bc))
+IPbi3=$(printf "%08d\n" $(echo "obase=2;$IP3" | bc))
+IPbi4=$(printf "%08d\n" $(echo "obase=2;$IP4" | bc))
+
+
+#==========================================================
+#МАСКА
+un=start
+        until [ "$un" = y ] ; do
+
+echo "Укажите маску сети: (пример:/24) "
+IFS="." read -r IPm1 IPm2 IPm3 IPm4
+        #1
+        if [[ $IPm1 =~ ^[/] ]] && [ ${IPm1:1} -le 32 ]; then
+                for ((i = 1 ; i <= 32 ; i++)); do
+                j=$((j+1))
+                m=1
+                [ $j -le ${IPm1:1} ] && m=$(($m*1)) || m=$(($m*0))
+                IPbimall+=$(echo $m)
+                done #for
+
+IPbim1=${IPbimall:0:8} ;  IPdec1=$((2#$IPbim1))
+IPbim2=${IPbimall:8:8} ;  IPdec2=$((2#$IPbim2))
+IPbim3=${IPbimall:16:8} ; IPdec3=$((2#$IPbim3))
+IPbim4=${IPbimall:24} ;   IPdec4=$((2#$IPbim4))
+un=y
+        else
+
+echo "Ввели не коректную маску" && un=err
+
+        fi #1
+
+        done #until
+
+#======================================================
+
+echo  "IP адрес: $IP1.$IP2.$IP3.$IP4"
+echo "Бинарный вид:"
+echo "$IPbi1.$IPbi2.$IPbi3.$IPbi4"
+
+echo -e "Маска подсети: $IPm1"
+echo "$IPdec1.$IPdec2.$IPdec3.$IPdec4"
+echo "Бинарный вид:"
+echo "$IPbim1.$IPbim2.$IPbim3.$IPbim4"
+
+
+ip10=$(echo "$IPbi1.$IPbi2.$IPbi3.$IPbi4" | sed 's/./& /g' | tr " " "\n")
+ip11=$(echo "$IPbim1.$IPbim2.$IPbim3.$IPbim4" | sed 's/./& /g' | tr " " "\n")
+
+
+#Дальше в разработке....
