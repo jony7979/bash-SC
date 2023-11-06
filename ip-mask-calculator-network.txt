@@ -1,16 +1,15 @@
 #!/bin/bash
-#калькулятор IP адресов, маски.
- 
+#РєР°Р»СЊРєСѓР»СЏС‚РѕСЂ IP Р°РґСЂРµСЃРѕРІ, РјР°СЃРєРё. 
 un=start
         until [ "$un" = y ] ; do
-echo "Укажите IP адрес: (пример: 1.1.1.1) "
+echo "РЈРєР°Р¶РёС‚Рµ IP Р°РґСЂРµСЃ: (РїСЂРёРјРµСЂ: 1.1.1.1) "
 IFS="." read -r IP1 IP2 IP3 IP4
 IPadr=($IP1 $IP2 $IP3 $IP4)
         for s in ${IPadr[@]} ; do
 ( [[ "$s" =~ ^[0-9]+$ ]] && (( $s < 256 ))) && un=start || un=err && continue
 echo $s
         done # for
-( [[ $un == err ]] || [ ! ${#IPadr[@]} = 4 ] ) && echo "Указан не корректный IP адрес, повторите ввод" && continue
+( [[ $un == err ]] || [ ! ${#IPadr[@]} = 4 ] ) && echo "Г“ГЄГ Г§Г Г­ Г­ГҐ ГЄГ®Г°Г°ГҐГЄГІГ­Г»Г© IP Г Г¤Г°ГҐГ±, ГЇГ®ГўГІГ®Г°ГЁГІГҐ ГўГўГ®Г¤" && continue
 un=y
         done # until
 
@@ -19,13 +18,11 @@ IPbi2=$(printf "%08d\n" $(echo "obase=2;$IP2" | bc))
 IPbi3=$(printf "%08d\n" $(echo "obase=2;$IP3" | bc))
 IPbi4=$(printf "%08d\n" $(echo "obase=2;$IP4" | bc))
 
-
 #==========================================================
-#МАСКА
+#РњРђРЎРљРђ
 un=start
         until [ "$un" = y ] ; do
-
-echo "Укажите маску сети: (пример:/24) "
+echo "РЈРєР°Р¶РёС‚Рµ РјР°СЃРєСѓ СЃРµС‚Рё: (РїСЂРёРјРµСЂ:/24) "
 IFS="." read -r IPm1 IPm2 IPm3 IPm4
         #1
         if [[ $IPm1 =~ ^[/] ]] && [ ${IPm1:1} -le 32 ]; then
@@ -42,27 +39,21 @@ IPbim3=${IPbimall:16:8} ; IPdec3=$((2#$IPbim3))
 IPbim4=${IPbimall:24} ;   IPdec4=$((2#$IPbim4))
 un=y
         else
-
-echo "Ввели не коректную маску" && un=err
-
+echo "Р’РІРµР»Рё РЅРµ РєРѕСЂРµРєС‚РЅСѓСЋ РјР°СЃРєСѓ" && un=err
         fi #1
 
         done #until
-
 #======================================================
-
-echo  "IP адрес: $IP1.$IP2.$IP3.$IP4"
-echo "Бинарный вид:"
+echo  "IP Р°РґСЂРµСЃ: $IP1.$IP2.$IP3.$IP4"
+echo "Р‘РёРЅР°СЂРЅС‹Р№ РІРёРґ:"
 echo "$IPbi1.$IPbi2.$IPbi3.$IPbi4"
-
-echo -e "Маска подсети: $IPm1"
+echo -e "РњР°СЃРєР° РїРѕРґСЃРµС‚Рё: $IPm1"
 echo "$IPdec1.$IPdec2.$IPdec3.$IPdec4"
-echo "Бинарный вид:"
+echo "Р‘РёРЅР°СЂРЅС‹Р№ РІРёРґ:"
 echo "$IPbim1.$IPbim2.$IPbim3.$IPbim4"
 
+#ip10=$(echo "$IPbi1.$IPbi2.$IPbi3.$IPbi4" | sed 's/./& /g' | tr " " "\n")
+#ip11=$(echo "$IPbim1.$IPbim2.$IPbim3.$IPbim4" | sed 's/./& /g' | tr " " "\n")
 
-ip10=$(echo "$IPbi1.$IPbi2.$IPbi3.$IPbi4" | sed 's/./& /g' | tr " " "\n")
-ip11=$(echo "$IPbim1.$IPbim2.$IPbim3.$IPbim4" | sed 's/./& /g' | tr " " "\n")
 
-
-#Дальше в разработке....
+#Г„Г Г«ГјГёГҐ Гў Г°Г Г§Г°Г ГЎГ®ГІГЄГҐ....
