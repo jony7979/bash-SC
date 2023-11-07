@@ -1,59 +1,118 @@
 #!/bin/bash
-#калькулятор IP адресов, маски. 
+#калькулятор IP адресов, маски.
 un=start
-        until [ "$un" = y ] ; do
-echo "Укажите IP адрес: (пример: 1.1.1.1) "
-IFS="." read -r IP1 IP2 IP3 IP4
+        until [ "$un" = y ]; do
+#echo "Укажите IP адрес:"
+IFS="." read -r -e -p "Укажите IP адрес: > " -i "192.168.188.0" IP1 IP2 IP3 IP4
 IPadr=($IP1 $IP2 $IP3 $IP4)
-        for s in ${IPadr[@]} ; do
+       for s in ${IPadr[@]};do
 ( [[ "$s" =~ ^[0-9]+$ ]] && (( $s < 256 ))) && un=start || un=err && continue
 echo $s
         done # for
 ( [[ $un == err ]] || [ ! ${#IPadr[@]} = 4 ] ) && echo "Óêàçàí íå êîððåêòíûé IP àäðåñ, ïîâòîðèòå ââîä" && continue
 un=y
-        done # until
+        done #until
+# Показать на экране IP адерес (исходные данные)
+echo  "IP адрес: $IP1.$IP2.$IP3.$IP4"
 
+# Перевод дес. числа в бинарный вид
 IPbi1=$(printf "%08d\n" $(echo "obase=2;$IP1" | bc))
 IPbi2=$(printf "%08d\n" $(echo "obase=2;$IP2" | bc))
 IPbi3=$(printf "%08d\n" $(echo "obase=2;$IP3" | bc))
 IPbi4=$(printf "%08d\n" $(echo "obase=2;$IP4" | bc))
 
-#==========================================================
+# Проверка на 32 бита (на всякий случай)
+IPbi=$IPbi1$IPbi2$IPbi3$IPbi4
+[[ ${#IPbi} == 32 ]] || echo "IP адрес НЕ 32 бита!"
+
+
+# Показать на экране IP адерес в бинарном виде
+echo -e "Бинарный вид: \n$IPbi1.$IPbi2.$IPbi3.$IPbi4"
+
+#=======================================================
 #МАСКА
 un=start
         until [ "$un" = y ] ; do
-echo "Укажите маску сети: (пример:/24) "
-IFS="." read -r IPm1 IPm2 IPm3 IPm4
+#echo "Укажите маску сети: (пример:/24) "
+IFS="." read -r -e -p "Укажите маску сети: > " -i "/24" IPm1 IPm2 IPm3 IPm4
         #1
         if [[ $IPm1 =~ ^[/] ]] && [ ${IPm1:1} -le 32 ]; then
                 for ((i = 1 ; i <= 32 ; i++)); do
                 j=$((j+1))
                 m=1
                 [ $j -le ${IPm1:1} ] && m=$(($m*1)) || m=$(($m*0))
-                IPbimall+=$(echo $m)
+                IPmbiall+=$(echo $m)
                 done #for
 
-IPbim1=${IPbimall:0:8} ;  IPdec1=$((2#$IPbim1))
-IPbim2=${IPbimall:8:8} ;  IPdec2=$((2#$IPbim2))
-IPbim3=${IPbimall:16:8} ; IPdec3=$((2#$IPbim3))
-IPbim4=${IPbimall:24} ;   IPdec4=$((2#$IPbim4))
+IPmbi1=${IPmbiall:0:8} ;  IPdec1=$((2#$IPmbi1))
+IPmbi2=${IPmbiall:8:8} ;  IPdec2=$((2#$IPmbi2))
+IPmbi3=${IPmbiall:16:8} ; IPdec3=$((2#$IPmbi3))
+IPmbi4=${IPmbiall:24} ;   IPdec4=$((2#$IPmbi4))
 un=y
         else
 echo "Ввели не коректную маску" && un=err
         fi #1
-
         done #until
-#======================================================
-echo  "IP адрес: $IP1.$IP2.$IP3.$IP4"
-echo "Бинарный вид:"
-echo "$IPbi1.$IPbi2.$IPbi3.$IPbi4"
-echo -e "Маска подсети: $IPm1"
-echo "$IPdec1.$IPdec2.$IPdec3.$IPdec4"
-echo "Бинарный вид:"
-echo "$IPbim1.$IPbim2.$IPbim3.$IPbim4"
+# Бинарный вид маски
+IPmbi=$IPmbi1$IPmbi2$IPmbi3$IPmbi4
+[[ ${#IPm} == 32 ]] || echo "Не 32 бита"
 
-#ip10=$(echo "$IPbi1.$IPbi2.$IPbi3.$IPbi4" | sed 's/./& /g' | tr " " "\n")
-#ip11=$(echo "$IPbim1.$IPbim2.$IPbim3.$IPbim4" | sed 's/./& /g' | tr " " "\n")
+# Вывести на экран маску подсети в битном и дес. виде
+echo  "Маска подсети: /$IPm1 ; $IPdec1.$IPdec2.$IPdec3.$IPdec4"
+# Вывести на экран маску в бинарном виде
+echo -e "Бинарный вид маски подсети: \n$IPmbi1.$IPmbi2.$IPmbi3.$IPmbi4"
 
 
-#Äàëüøå â ðàçðàáîòêå....
+#==============================================
+# Получем начальный адерес сети перемножим бинарники IP и MASK 
+for ((i = 0 ; i < 32 ; i++)); do
+IPnetbi+=$(( ${IPbi:i:1} * ${IPmbi:i:1} ))
+done
+IPnetbi1=${IPnetbi:0:8} ; IPnetbi2=${IPnetbi:8:8} ; IPnetbi3=${IPnetbi:16:8}; IPnetbi4=${IPnetbi:24:8}
+# Выводит на экран бинарный вид начало сети
+echo "Бинарный вид начального адреса сети:"
+echo "$IPnetbi1.$IPnetbi2.$IPnetbi3.$IPnetbi4"
+
+# Начальный адрес сети в десятичном формате по актетам
+IPnetdec1=$((2#$IPnetbi1))
+IPnetdec2=$((2#$IPnetbi2))
+IPnetdec3=$((2#$IPnetbi3))
+IPnetdec4=$((2#$IPnetbi4))
+
+# Выводит на экран IP адерс в дес. формате
+echo "Начальный адрес сети в дес. формате:"
+echo "$IPnetdec1.$IPnetdec2.$IPnetdec3.$IPnetdec4"
+# Выводит на экран IP адерс в дес. формате +1 (для роутера) 
+echo "Первый адрес сети:"
+echo "$IPnetdec1.$IPnetdec2.$IPnetdec3.$((${IPnetdec4}+1))"
+#==============================================
+
+IPmdt=${IPm1:1}
+echo .............$IPmdt
+IPmdt32=$(( 32 - $IPmdt))
+echo .............$IPmdt32
+
+#==============================================
+# конечный адрес сети
+# Берем часть от бинарного начального адерса 
+IPkbi=${IPnetbi:0:$IPmdt}
+echo "Часть от бинарника $IPkbi"
+# создает требуемое количество единиц, что бы прибавить к маски и получить конечный адрес
+
+for ((i = 0 ; i < IPmdt32 ; i++)); do
+IPmed+=1
+done
+
+echo $IPmed
+
+echo "Количество единиц $IPmed"
+
+# складываем часть от начально адереса и часть забиваем единицами
+echo ${IPkbi}${IPmed}
+
+echo "Количество узлов IP в сети: $(($((2 ** $IPmdt32))-2))"
+
+
+
+#Продолжение следует.... осталось немного! красиво собрать выводящую информацию
+
