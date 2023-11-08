@@ -1,0 +1,63 @@
+#!\bin\bash
+# Вар1
+# Понимает Yy или Enter (пустой ввод) и Nn
+fun-yn(){
+while true; do
+    read -r -p "$1 (n/Y): " answer
+    case "$answer" in
+        [Yy] ) echo "GOOD $answer" ;;
+        [Nn] )echo "GOOD $answer" ;;
+        "" ) echo "GOOD Enter ${answer:="Y"}" ;;
+        * ) echo "Please answer Y or N";;
+    esac
+done
+}
+
+fun-yn "Подтверить"
+
+
+# Вар2
+******************************************
+#!\bin\bash
+# Понимает Yy или Enter (пустой ввод) и Nn
+fun-YN(){
+until [[ $i == y ]]; do
+read -p "$1 [Y/n] > " ans
+        if  [[ ${ans:="Y"} == [Yy] ]]; then
+echo "Good $ans"
+i=y
+        elif [[ ${ans:="Y"} == [Nn] ]] ; then
+echo "Good ${ans}..."
+i=y
+        else
+echo "Ввели не корректное значение, повторить ввод"
+i=n
+        fi
+done # until 
+}
+fun-YN "Записать значение:"
+
+# Вар3
+******************************************
+#!\bin\bash
+# Только Enter/Yy
+
+until [[ $var =~ [Nn] ]]
+        do
+read -p "Укажи значение: [Enter/Yy]" var
+#echo $var
+        if [[ -z "$var" || $var =~ [Yy] ]] ; then
+echo "Good"
+        else
+echo "NO GOOD"
+        fi
+        done
+
+*******************************************
+X=0
+until [[ $X == [Xx] ]]
+do
+read -p "Укажите значение:" actionVM
+
+done
+
