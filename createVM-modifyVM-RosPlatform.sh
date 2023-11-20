@@ -53,32 +53,30 @@ X=0
 echo "........................................................................."
 echo "$(prlctl list -a | awk 'NR>1 {print S1="VM:\t\t"$5,$3="\t",$2}'| grep -n VM: | column -t | pr -t -2 )"
 echo "........................................................................."
-echo "Создать(c) Настройки>>(e) Запустить(r) \
+echo "Создать(c) Редактировать>>(e) Запустить(r) \
 Запуст.ВСЕ(R) Рестарт(Z) Остановить(s) Останов.ВСЕ(S) \
 Удалить(d) Информация(i) Список(L) Клон.(k) Выход(x)" | tr -s " " "\n" | pr -t -4
  
 echo "........................................................................."
-read -p "  Укажите действие или [eXit]:" actionVM
+read -p "  Выберите действие. [eXit]:" actionVM
 
 #ccccccccccccccccccccccccccccccccc======================================================================
-# 1. Присваиваем имя виртальной машине.
-	if [[ $actionVM == [Cc] ]] ; then
-echo -n "Введите имя новой ВМ,(eXit):"
-read VRcreate
+# 1. Назначить имя виртальной машине.
+#	until [[ $VRcreate == [Xx] ]]; do
 
-#11111111111111111111111
-	if [[ $(prlctl list -a | awk 'NR>1 {print $5}' | grep -q $VRcreate) ]] ; then
-echo "ВНИМАНИЕ!!!!!!!!!! Совпадение имени ВМ, будет перезалита или нажмите прервать"
-#break
-#exit
-	fi
-#1111111111111111111111
-
-#until [[ $VRcreate == [Xx] ]]
-#	do
+		if [[ $actionVM == [Cc] ]] ; then
+		echo -n "Введите имя новой ВМ,(eXit):"
+		read VRcreate
+VRcreate=${VRcreate:=X}  
+[[ $VRcreate == [Xx] ]] && echo "был выбран выход" && continue
+			   #Начало проверки условия совпадения имяни
+			if [[ $(prlctl list -a | awk 'NR>1 {print $5}' | grep -q $VRcreate) ]] ; then
+			echo "ВНИМАНИЕ! - Совпадение имени VM" && continue
+			fi #Конец проверки условия совпадения имяни
+	
 # 1. Укажите количество соккетов
 # read -e -p "Укажите количество соккетов <default>: " -i "1" VRsockte
-# 2. Укажите количичества ядер, по умолчанию 4 ядра
+# 2. Количичества ядер, по умолчанию 4 ядра
 read -e -p "Укажите количичества ядер <default>: " -i "4" VRcpus
 # 3. Размер hdd под виртуальную машину
 read -e -p "Размер диска, в Gb, <default>: " -i "50" VRsize
@@ -103,23 +101,23 @@ echo -e " \nChecking: \n"
 echo -e "NAME VM:\t$VRcreate \nCORES:\t\t$VRcpus \nDISK_SIZE:\t$VRsize \
 \nMEMORY_SIZE:\t$VRmemsize \nVIDEO_SIZE:\t$VRvideosize\n "
 
-read -p "Create a virtual machine with parameters [Enter/n]?"
-	if ! [[ $REPLY == [Nn] ]] ; then
-prlctl create $VRcreate --distribution linux >/dev/null
-prlctl set $VRcreate --cpus $VRcpus --size $VRsize --memsize $VRmemsize --videosize $VRvideosize --autostart auto --tools-autoupdate off 
-#>/dev/null
-prlctl set $VRcreate --device-set cdrom0 --image $VRname --connect --enable 
-#>/dev/null
-prlctl set $VRcreate --vnc-mode auto --vnc-nopasswd 
-#>/dev/null
-prlctl start $VRcreate
-sleep 3
-echo -e "Port: \t$(prlctl list -i $VRcreate | grep -o 'port=[^ ,]\+' | sed 's/port=//')"
-VRcreate=X
+read -p "Создать VM со следующими параметрами: [Y/n]?" creatYN
+creatYN=${creatYN:="Y"}
+# Создание VM по введеным значениям	
+	if [[ $creatYN == [Yy] ]] ; then
+		prlctl create $VRcreate --distribution linux >/dev/null
+		prlctl set $VRcreate --cpus $VRcpus --size $VRsize --memsize $VRmemsize --videosize $VRvideosize --autostart auto --tools-autoupdate off 
+		prlctl set $VRcreate --device-set cdrom0 --image $VRname --connect --enable 
+		prlctl set $VRcreate --vnc-mode auto --vnc-nopasswd 
+		prlctl start $VRcreate
+		sleep 3
+		echo -e "Port: \t$(prlctl list -i $VRcreate | grep -o 'port=[^ ,]\+' | sed 's/port=//')"
+		VRcreate=X
 	else
-echo "Exit"
-	fi
-#	done
+		echo "Exit"
+	fi # Создание VM по введеным значениям
+	
+#	done ; until
 
 #НАСТРОЙКИeeeeeeeeeeeeeeeeeeeee======================================================================
 
@@ -149,7 +147,7 @@ echo "Значение не бырано"
 
         fi
         done
-#done
+
 
 #rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr===================================================
 	elif [[ $actionVM == [r] ]] ; then
